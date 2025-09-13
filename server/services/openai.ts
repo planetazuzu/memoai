@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+// Using the latest available OpenAI model
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.API_KEY || "default_key" 
+  apiKey: process.env.OPENAI_API_KEY || process.env.API_KEY 
 });
 
 export interface AnalysisResult {
@@ -21,7 +21,7 @@ export interface AnalysisResult {
 export async function analyzeTranscript(transcript: string, title: string): Promise<AnalysisResult> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -85,6 +85,11 @@ export async function generateChatResponse(
   recordings: Array<{ title: string; transcript?: string; summary?: string; createdAt: Date }>
 ): Promise<string> {
   try {
+    // Check if API key is properly configured
+    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "default_key") {
+      return "Lo siento, el servicio de IA no está configurado correctamente. Por favor contacta al administrador para configurar la clave API de OpenAI.";
+    }
+
     const contextData = recordings.map(r => ({
       title: r.title,
       date: r.createdAt.toISOString().split('T')[0],
@@ -92,7 +97,7 @@ export async function generateChatResponse(
     }));
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -112,9 +117,21 @@ Responde de manera útil, concisa y en español. Si el usuario pregunta sobre ta
     });
 
     return response.choices[0].message.content || 'Lo siento, no pude procesar tu consulta.';
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating chat response:', error);
-    throw new Error('Failed to generate chat response');
+    
+    // Handle specific OpenAI errors with user-friendly messages
+    if (error?.code === 'insufficient_quota') {
+      return "El servicio de IA ha alcanzado su límite de uso. Por favor intenta más tarde o contacta al administrador.";
+    } else if (error?.code === 'invalid_api_key') {
+      return "La configuración del servicio de IA no es válida. Por favor contacta al administrador.";
+    } else if (error?.status === 429) {
+      return "El servicio de IA está temporalmente ocupado. Por favor intenta de nuevo en unos momentos.";
+    } else if (error?.status >= 500) {
+      return "El servicio de IA está experimentando problemas técnicos. Por favor intenta más tarde.";
+    }
+    
+    return "Lo siento, no pude conectar con el servicio de IA en este momento. Por favor intenta más tarde.";
   }
 }
 

@@ -175,22 +175,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If this is a user message, generate AI response
       if (data.role === 'user') {
-        const recordings = await storage.getAllRecordings();
-        const recordingsForAI = recordings.map(r => ({
-          title: r.title,
-          transcript: r.transcript || undefined,
-          summary: r.summary || undefined,
-          createdAt: r.createdAt
-        }));
-        const aiResponse = await generateChatResponse(data.content, recordingsForAI);
-        
-        const assistantMessage = await storage.createChatMessage({
-          role: 'assistant',
-          content: aiResponse,
-          metadata: {},
-        });
+        try {
+          const recordings = await storage.getAllRecordings();
+          const recordingsForAI = recordings.map(r => ({
+            title: r.title,
+            transcript: r.transcript || undefined,
+            summary: r.summary || undefined,
+            createdAt: r.createdAt
+          }));
+          const aiResponse = await generateChatResponse(data.content, recordingsForAI);
+          
+          const assistantMessage = await storage.createChatMessage({
+            role: 'assistant',
+            content: aiResponse,
+            metadata: {},
+          });
 
-        res.json([message, assistantMessage]);
+          res.json([message, assistantMessage]);
+        } catch (aiError) {
+          console.error('AI response error:', aiError);
+          // Still save the user message and return it, but with an error response
+          const errorMessage = await storage.createChatMessage({
+            role: 'assistant',
+            content: 'Lo siento, no puedo responder en este momento debido a un problema técnico. Tu mensaje se ha guardado correctamente.',
+            metadata: {},
+          });
+
+          res.json([message, errorMessage]);
+        }
       } else {
         res.json([message]);
       }

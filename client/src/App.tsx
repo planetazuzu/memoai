@@ -11,6 +11,7 @@ import { Search, Moon, Sun, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import Home from "@/pages/home";
+import Chat from "@/pages/chat";
 import NotFound from "@/pages/not-found";
 
 function Header() {
@@ -85,17 +86,7 @@ function Router() {
           </div>
         );
       case 'assistant':
-        return (
-          <div className="px-4 py-6 pb-24">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4">Asistente IA</h2>
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Función en desarrollo</p>
-                <p className="text-sm text-muted-foreground">El chat con IA estará disponible pronto</p>
-              </div>
-            </div>
-          </div>
-        );
+        return <Chat />;
       default:
         return <NotFound />;
     }
