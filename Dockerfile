@@ -43,11 +43,15 @@ COPY --from=builder /app/package*.json ./
 # Copy shared files
 COPY --from=builder /app/shared ./shared
 
+# Copy client build directory
+COPY --from=builder /app/client ./client
+
 # Verify package.json exists
 RUN ls -la /app/package.json
 
-# Create uploads directory
+# Create uploads directory and database directory
 RUN mkdir -p uploads/audio && chown -R nextjs:nodejs uploads
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 
 # Switch to non-root user
 USER nextjs

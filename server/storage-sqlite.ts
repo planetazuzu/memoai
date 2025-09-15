@@ -5,7 +5,11 @@ import { eq, desc, and, gte, lte, like, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { recordings, chatMessages, users } from "@shared/schema";
 
-const sqlite = new Database("./database.sqlite");
+// Use a writable directory for Docker, fallback to current directory for local development
+const dbPath = process.env.NODE_ENV === 'production' 
+  ? '/app/data/database.sqlite' 
+  : './database.sqlite';
+const sqlite = new Database(dbPath);
 const db = drizzle(sqlite);
 
 export class SQLiteStorage {
