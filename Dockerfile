@@ -38,9 +38,13 @@ RUN adduser --system --uid 1001 nextjs
 # Copy built application
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 
 # Copy shared files
 COPY --from=builder /app/shared ./shared
+
+# Verify package.json exists
+RUN ls -la /app/package.json
 
 # Create uploads directory
 RUN mkdir -p uploads/audio && chown -R nextjs:nodejs uploads
