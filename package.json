@@ -12,7 +12,7 @@
     "start": "cross-env PORT=9021 node dist/server/index.js",
     "check": "tsc",
     "check:server": "tsc -p tsconfig.server.json",
-    "db:push": "drizzle-kit push",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
