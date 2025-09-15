@@ -68,12 +68,23 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve("/app/client/dist");
+  // En producción, servir archivos estáticos desde el servidor
+  const distPath = path.resolve(import.meta.dirname, "..", "client", "dist");
 
+  // Si no existe el directorio del cliente, crear una respuesta de error más amigable
   if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+    console.warn(`Client build directory not found at: ${distPath}`);
+    console.warn("Serving API only mode - client files not available");
+    
+    // Servir solo la API, sin archivos estáticos
+    app.use("*", (_req, res) => {
+      res.status(503).json({
+        error: "Client not built",
+        message: "The client application is not available. Please build the client first.",
+        path: distPath
+      });
+    });
+    return;
   }
 
   app.use(express.static(distPath));

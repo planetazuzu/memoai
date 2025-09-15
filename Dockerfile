@@ -27,6 +27,9 @@ COPY . .
 # Build the application
 RUN npm run build
 
+# Verify that client was built
+RUN ls -la /app/client/dist/ || echo "Client dist directory not found"
+
 # Production stage
 FROM base AS runner
 WORKDIR /app
