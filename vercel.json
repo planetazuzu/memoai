@@ -21,7 +21,8 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "PORT": "9021"
   },
   "functions": {
     "api/index.js": {

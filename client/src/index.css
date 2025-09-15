@@ -4,6 +4,197 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mejoras para móviles */
+@layer base {
+  html {
+    /* Prevenir zoom en inputs en iOS */
+    -webkit-text-size-adjust: 100%;
+    /* Mejorar scroll en iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    /* Prevenir selección de texto accidental en móviles */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    /* Mejorar renderizado de fuentes */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Permitir selección en inputs y textareas */
+  input, textarea, [contenteditable] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+}
+
+@layer components {
+  /* Botones optimizados para móviles */
+  .mobile-button {
+    @apply min-h-[44px] min-w-[44px] touch-manipulation;
+  }
+
+  /* Cards con mejor espaciado en móviles */
+  .mobile-card {
+    @apply p-4 sm:p-6;
+  }
+
+  /* Inputs optimizados para móviles */
+  .mobile-input {
+    @apply text-base min-h-[44px] px-4;
+  }
+
+  /* Animaciones suaves */
+  .smooth-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Efectos de hover para móviles */
+  @media (hover: hover) {
+    .hover-lift:hover {
+      @apply transform -translate-y-1 shadow-lg;
+    }
+  }
+
+  /* Efectos de tap para móviles */
+  .tap-scale:active {
+    @apply transform scale-95;
+  }
+}
+
+@layer utilities {
+  /* Utilidades para PWA */
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-inset-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-inset-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Mejorar scroll en móviles */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Ocultar scrollbar pero mantener funcionalidad */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Animaciones de entrada */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+}
+
+/* Keyframes para animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Mejoras específicas para PWA */
+@media (display-mode: standalone) {
+  body {
+    /* Ocultar barra de direcciones en PWA */
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+
+  .pwa-container {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+}
+
+/* Mejoras para pantallas pequeñas */
+@media (max-width: 640px) {
+  .mobile-stack {
+    @apply flex-col space-y-2 space-x-0;
+  }
+
+  .mobile-full {
+    @apply w-full;
+  }
+
+  .mobile-text-sm {
+    @apply text-sm;
+  }
+
+  .mobile-p-2 {
+    @apply p-2;
+  }
+}
+
 :root {
   --background: hsl(210, 40%, 98%);
   --foreground: hsl(222.2, 84%, 4.9%);

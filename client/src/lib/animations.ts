@@ -1,108 +1,146 @@
-// Animation utilities for better UX
-export const animations = {
-  // Fade in animation
-  fadeIn: {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.3, ease: "easeOut" }
-  },
+// Animaciones básicas
+export const fadeIn = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.3, ease: "easeOut" }
+};
 
-  // Slide in from right
-  slideInRight: {
-    initial: { opacity: 0, x: 50 },
-    animate: { opacity: 1, x: 0 },
-    transition: { duration: 0.3, ease: "easeOut" }
-  },
+export const slideIn = {
+  initial: { x: -20, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: 20, opacity: 0 },
+  transition: { duration: 0.4, ease: "easeOut" }
+};
 
-  // Slide in from left
-  slideInLeft: {
-    initial: { opacity: 0, x: -50 },
-    animate: { opacity: 1, x: 0 },
-    transition: { duration: 0.3, ease: "easeOut" }
-  },
+export const scaleIn = {
+  initial: { scale: 0.9, opacity: 0 },
+  animate: { scale: 1, opacity: 1 },
+  exit: { scale: 0.9, opacity: 0 },
+  transition: { duration: 0.3, ease: "easeOut" }
+};
 
-  // Scale in animation
-  scaleIn: {
-    initial: { opacity: 0, scale: 0.9 },
-    animate: { opacity: 1, scale: 1 },
-    transition: { duration: 0.2, ease: "easeOut" }
-  },
+// Animaciones para móvil
+export const slideUp = {
+  initial: { y: 20, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: 20, opacity: 0 },
+  transition: { duration: 0.3, ease: "easeOut" }
+};
 
-  // Bounce animation for buttons
-  bounce: {
-    whileHover: { scale: 1.05 },
-    whileTap: { scale: 0.95 },
-    transition: { type: "spring", stiffness: 400, damping: 10 }
-  },
+export const slideDown = {
+  initial: { y: -20, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: -20, opacity: 0 },
+  transition: { duration: 0.3, ease: "easeOut" }
+};
 
-  // Recording pulse animation
-  recordingPulse: {
-    animate: { 
-      scale: [1, 1.1, 1],
-      opacity: [0.7, 1, 0.7]
-    },
-    transition: { 
-      duration: 1.5, 
-      repeat: Infinity, 
-      ease: "easeInOut" 
-    }
+// Animaciones de grabación
+export const pulse = {
+  animate: {
+    scale: [1, 1.05, 1],
+    opacity: [1, 0.8, 1]
   },
-
-  // Loading spinner
-  spin: {
-    animate: { rotate: 360 },
-    transition: { 
-      duration: 1, 
-      repeat: Infinity, 
-      ease: "linear" 
-    }
-  },
-
-  // Stagger animation for lists
-  staggerContainer: {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  },
-
-  staggerItem: {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.3 }
-  },
-
-  // Page transition
-  pageTransition: {
-    initial: { opacity: 0, x: 20 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 },
-    transition: { duration: 0.2, ease: "easeInOut" }
+  transition: {
+    duration: 2,
+    repeat: Infinity,
+    ease: "easeInOut"
   }
 };
 
-// CSS classes for animations
-export const animationClasses = {
-  fadeIn: "animate-in fade-in duration-300",
-  slideInRight: "animate-in slide-in-from-right duration-300",
-  slideInLeft: "animate-in slide-in-from-left duration-300",
-  scaleIn: "animate-in zoom-in duration-200",
-  bounce: "hover:scale-105 active:scale-95 transition-transform",
-  recordingPulse: "animate-pulse",
-  spin: "animate-spin"
+export const recordingPulse = {
+  animate: {
+    scale: [1, 1.1, 1],
+    boxShadow: [
+      "0 0 0 0 rgba(239, 68, 68, 0.7)",
+      "0 0 0 10px rgba(239, 68, 68, 0)",
+      "0 0 0 0 rgba(239, 68, 68, 0)"
+    ]
+  },
+  transition: {
+    duration: 1.5,
+    repeat: Infinity,
+    ease: "easeInOut"
+  }
 };
 
-// Hook for staggered animations
-export const useStaggerAnimation = (items: any[]) => {
-  return {
-    container: animations.staggerContainer,
-    items: items.map((_, index) => ({
-      ...animations.staggerItem,
-      transition: {
-        ...animations.staggerItem.transition,
-        delay: index * 0.1
-      }
-    }))
-  };
+// Animaciones de lista
+export const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+export const staggerItem = {
+  initial: { y: 20, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  transition: { duration: 0.3, ease: "easeOut" }
+};
+
+// Animaciones de botones
+export const buttonHover = {
+  whileHover: { 
+    scale: 1.02,
+    transition: { duration: 0.2 }
+  },
+  whileTap: { 
+    scale: 0.98,
+    transition: { duration: 0.1 }
+  }
+};
+
+// Animaciones de transición de página
+export const pageTransition = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+  transition: { duration: 0.3, ease: "easeInOut" }
+};
+
+// Animaciones de notificación
+export const notificationSlide = {
+  initial: { x: 300, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: 300, opacity: 0 },
+  transition: { duration: 0.3, ease: "easeOut" }
+};
+
+// Animaciones de carga
+export const loadingSpinner = {
+  animate: {
+    rotate: 360
+  },
+  transition: {
+    duration: 1,
+    repeat: Infinity,
+    ease: "linear"
+  }
+};
+
+// Animaciones de búsqueda
+export const searchFocus = {
+  focus: {
+    scale: 1.02,
+    boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+    transition: { duration: 0.2 }
+  }
+};
+
+// Animaciones de swipe para móvil
+export const swipeGesture = {
+  drag: "x",
+  dragConstraints: { left: -100, right: 100 },
+  dragElastic: 0.2,
+  whileDrag: { scale: 1.05 },
+  onDragEnd: (event: any, info: any) => {
+    if (info.offset.x > 50) {
+      // Swipe right action
+      return "swipeRight";
+    } else if (info.offset.x < -50) {
+      // Swipe left action
+      return "swipeLeft";
+    }
+  }
 };

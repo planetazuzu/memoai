@@ -6,10 +6,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
-    "build:server": "tsc -p tsconfig.server.json",
-    "build:client": "cd client && npm install && npm run build",
+    "build:server": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build:client": "vite build",
     "build": "npm run build:client && npm run build:server",
-    "start": "node dist/server/index.js",
+    "start": "cross-env PORT=9021 node dist/server/index.js",
     "check": "tsc",
     "check:server": "tsc -p tsconfig.server.json",
     "db:push": "drizzle-kit push",

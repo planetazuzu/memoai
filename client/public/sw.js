@@ -1,13 +1,16 @@
-const CACHE_NAME = 'memoai-v3';
-const STATIC_CACHE = 'memoai-static-v3';
-const DYNAMIC_CACHE = 'memoai-dynamic-v3';
-const OFFLINE_CACHE = 'memoai-offline-v3';
+const CACHE_NAME = 'memoai-v4';
+const STATIC_CACHE = 'memoai-static-v4';
+const DYNAMIC_CACHE = 'memoai-dynamic-v4';
+const OFFLINE_CACHE = 'memoai-offline-v4';
+const AUDIO_CACHE = 'memoai-audio-v4';
 
 const urlsToCache = [
   '/',
   '/manifest.json',
   '/favicon.ico',
-  '/offline.html'
+  '/offline.html',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
 ];
 
 // Install event - cache static assets

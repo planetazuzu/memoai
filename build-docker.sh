@@ -10,7 +10,7 @@ docker build -t memoai:latest .
 if [ $? -eq 0 ]; then
     echo "✅ Docker image built successfully!"
     echo "🚀 To run the container:"
-    echo "   docker run -p 3000:3000 memoai:latest"
+    echo "   docker run -p 9021:9021 memoai:latest"
     echo ""
     echo "🔧 Or use docker-compose:"
     echo "   docker-compose up"
