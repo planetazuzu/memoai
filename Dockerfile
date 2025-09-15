@@ -7,11 +7,9 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY client/package*.json ./client/
 
 # Install dependencies
-RUN npm ci --only=production && \
-    cd client && npm ci --only=production
+RUN npm ci --only=production
 
 # Build stage
 FROM base AS builder
@@ -19,10 +17,9 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY client/package*.json ./client/
 
 # Install all dependencies (including dev)
-RUN npm ci && cd client && npm ci
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -40,9 +37,7 @@ RUN adduser --system --uid 1001 nextjs
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./client/dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/client/node_modules ./client/node_modules
 
 # Copy shared files
 COPY --from=builder /app/shared ./shared
