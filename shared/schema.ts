@@ -40,7 +40,6 @@ export const users = sqliteTable("users", {
 
 export const chatMessages = sqliteTable("chat_messages", {
   id: text("id").primaryKey().$defaultFn(() => randomUUID()),
-  userId: text("user_id").notNull().references(() => users.id),
   role: text("role").notNull().$type<'user' | 'assistant'>(),
   content: text("content").notNull(),
   metadata: text("metadata", { mode: 'json' }).$type<{
@@ -58,7 +57,6 @@ export const insertRecordingSchema = createInsertSchema(recordings).omit({
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   id: true,
   createdAt: true,
-  userId: true,
 });
 
 export type InsertRecording = z.infer<typeof insertRecordingSchema>;
