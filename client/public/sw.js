@@ -1,8 +1,8 @@
-const CACHE_NAME = 'memoai-v4';
-const STATIC_CACHE = 'memoai-static-v4';
-const DYNAMIC_CACHE = 'memoai-dynamic-v4';
-const OFFLINE_CACHE = 'memoai-offline-v4';
-const AUDIO_CACHE = 'memoai-audio-v4';
+const CACHE_NAME = 'memoai-v5';
+const STATIC_CACHE = 'memoai-static-v5';
+const DYNAMIC_CACHE = 'memoai-dynamic-v5';
+const OFFLINE_CACHE = 'memoai-offline-v5';
+const AUDIO_CACHE = 'memoai-audio-v5';
 
 const urlsToCache = [
   '/',

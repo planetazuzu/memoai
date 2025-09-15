@@ -27,6 +27,22 @@ export const recordings = sqliteTable("recordings", {
     timestamp: number;
     location?: string;
   }>>().default([]),
+  speakers: text("speakers", { mode: 'json' }).$type<Array<{
+    id: string;
+    name: string;
+    segments: Array<{
+      start: number;
+      end: number;
+      text: string;
+      confidence: number;
+    }>;
+    characteristics?: {
+      gender?: 'male' | 'female' | 'unknown';
+      ageRange?: 'young' | 'adult' | 'senior' | 'unknown';
+      language?: string;
+      accent?: string;
+    };
+  }>>().default([]),
   metadata: text("metadata", { mode: 'json' }).$type<{
     type: 'meeting' | 'call' | 'note' | 'photo' | 'other';
     participants?: string[];
