@@ -2,9 +2,10 @@ import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 
 export const recordings = sqliteTable("recordings", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
   title: text("title").notNull(),
   audioUrl: text("audio_url"),
   duration: integer("duration").notNull().default(0), // duration in seconds
@@ -29,7 +30,7 @@ export const recordings = sqliteTable("recordings", {
 });
 
 export const users = sqliteTable("users", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   isActive: integer("is_active", { mode: 'boolean' }).default(true),
@@ -38,7 +39,7 @@ export const users = sqliteTable("users", {
 });
 
 export const chatMessages = sqliteTable("chat_messages", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
   userId: text("user_id").notNull().references(() => users.id),
   role: text("role").notNull().$type<'user' | 'assistant'>(),
   content: text("content").notNull(),

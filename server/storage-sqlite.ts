@@ -2,6 +2,7 @@ import { type Recording, type InsertRecording, type ChatMessage, type InsertChat
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { eq, desc, and, gte, lte, like, or } from "drizzle-orm";
+import { randomUUID } from "crypto";
 import { recordings, chatMessages, users } from "@shared/schema";
 
 const sqlite = new Database("./database.sqlite");
@@ -34,8 +35,8 @@ export class SQLiteStorage {
     return results;
   }
 
-  async createRecording(insertRecording: InsertRecording): Promise<Recording> {
-    const id = crypto.randomUUID();
+      async createRecording(insertRecording: InsertRecording): Promise<Recording> {
+        const id = randomUUID();
     const recording: Recording = {
       id,
       title: insertRecording.title,
@@ -97,8 +98,8 @@ export class SQLiteStorage {
     return results;
   }
 
-  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
-    const id = crypto.randomUUID();
+      async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
+        const id = randomUUID();
     const message: ChatMessage = {
       id,
       role: insertMessage.role as ChatMessage['role'],
