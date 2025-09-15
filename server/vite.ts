@@ -69,7 +69,7 @@ export async function setupVite(app: Express, server: Server) {
 
 export function serveStatic(app: Express) {
   // En producción, servir archivos estáticos desde el servidor
-  const distPath = path.resolve(import.meta.dirname, "..", "client", "dist");
+  const distPath = path.resolve("/app/client/dist");
 
   // Si no existe el directorio del cliente, crear una respuesta de error más amigable
   if (!fs.existsSync(distPath)) {
