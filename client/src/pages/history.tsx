@@ -169,35 +169,40 @@ export default function History() {
     }
   };
 
-  const handlePlayRecording = (recording: Recording) => {
-    if (recording.audioUrl) {
-      // In a real implementation, you would play the audio
-      console.log('Playing recording:', recording.audioUrl);
-      toast({
-        title: "Reproduciendo",
-        description: "Reproduciendo grabación...",
-      });
+  const handleViewTranscript = (recording: Recording) => {
+    if (recording.transcript) {
+      // Mostrar transcripción en un modal o alerta
+      alert(`Transcripción:\n\n${recording.transcript}`);
     } else {
       toast({
-        title: "Audio no disponible",
-        description: "No hay archivo de audio para esta grabación",
+        title: "Transcripción no disponible",
+        description: "No hay transcripción para esta grabación",
         variant: "destructive",
       });
     }
   };
 
-  const handleDownloadRecording = (recording: Recording) => {
-    if (recording.audioUrl) {
-      // In a real implementation, you would download the audio
-      console.log('Downloading recording:', recording.audioUrl);
+  const handleDownloadTranscript = (recording: Recording) => {
+    if (recording.transcript) {
+      // Descargar transcripción como archivo de texto
+      const blob = new Blob([recording.transcript], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${recording.title || 'transcripcion'}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
       toast({
         title: "Descargando",
-        description: "Descargando grabación...",
+        description: "Descargando transcripción...",
       });
     } else {
       toast({
-        title: "Audio no disponible",
-        description: "No hay archivo de audio para esta grabación",
+        title: "Transcripción no disponible",
+        description: "No hay transcripción para esta grabación",
         variant: "destructive",
       });
     }

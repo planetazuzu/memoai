@@ -97,7 +97,9 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
           formData.append('audio', audioBlob, 'recording.webm');
           
           const response = await apiRequest('POST', '/api/transcribe', formData);
-          finalTranscript = response.transcription;
+          // Suponemos que la respuesta es JSON y contiene la propiedad 'transcription'
+          const data = await response.json?.() ?? response; // Soporta ambos: fetch o una respuesta ya parseada
+          finalTranscript = data.transcription;
 
           toast({
             title: "Transcripción completada",
@@ -105,7 +107,7 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
           });
         } catch (transcriptionError: any) {
           console.error('Transcription error:', transcriptionError);
-          
+          https://github.com/planetazuzu/memoai
           // Si falla la transcripción, usar la transcripción del navegador o un mensaje
           finalTranscript = transcript.trim() || 'Transcripción no disponible';
           
@@ -133,8 +135,20 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
       
       // Auto-save to server
       try {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('es-ES', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        const dateString = now.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+        
         const formData = new FormData();
-        formData.append('title', `Grabación ${new Date().toLocaleString('es-ES')}`);
+        formData.append('title', `Grabación ${dateString} ${timeString}`);
         formData.append('transcript', finalTranscript);
         formData.append('duration', duration.toString());
         formData.append('metadata', JSON.stringify({ type: 'other' }));

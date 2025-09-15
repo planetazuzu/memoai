@@ -20,8 +20,15 @@ export const recordings = sqliteTable("recordings", {
     dueDate?: string;
   }>>().default([]),
   diaryEntry: text("diary_entry"),
+  photos: text("photos", { mode: 'json' }).$type<Array<{
+    id: string;
+    url: string;
+    caption: string;
+    timestamp: number;
+    location?: string;
+  }>>().default([]),
   metadata: text("metadata", { mode: 'json' }).$type<{
-    type: 'meeting' | 'call' | 'note' | 'other';
+    type: 'meeting' | 'call' | 'note' | 'photo' | 'other';
     participants?: string[];
     tags?: string[];
   }>().$default(() => ({ type: 'other' as const })),
@@ -56,7 +63,7 @@ export const insertRecordingSchema = createInsertSchema(recordings).omit({
 
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   id: true,
-  createdAt: true,
+  createdAt: true las fotos
 });
 
 export type InsertRecording = z.infer<typeof insertRecordingSchema>;

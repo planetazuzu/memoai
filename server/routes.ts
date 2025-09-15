@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { getStorage } from "./storage";
 import { insertRecordingSchema, insertChatMessageSchema } from "@shared/schema";
-import { analyzeTranscript, generateChatResponse, transcribeAudio } from "./services/openai";
+import { aiService } from "./services/ai-service";
 import { audioService } from "./services/audio";
 import multer from 'multer';
 import express from 'express';
@@ -51,12 +51,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new recording
-  app.post("/api/recordings", upload.single('audio'), async (req, res) => {
+  // Create new recording (transcript only, no audio files)
+  app.post("/api/recordings", async (req, res) => {
     try {
-      // Transform multipart/form-data fields for validation
+      // Generate automatic title with timestamp if not provided
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      const dateString = now.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      
+      // Transform fields for validation
       const body = {
-        title: req.body.title || 'Grabación sin título',
+        title: req.body.title || `Grabación ${dateString} ${timeString}`,
         duration: req.body.duration ? Number(req.body.duration) : 0,
         transcript: req.body.transcript || null,
         summary: req.body.summary || null,
@@ -64,21 +77,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         diaryEntry: req.body.diaryEntry || null,
         metadata: req.body.metadata ? JSON.parse(req.body.metadata) : { type: 'other' },
         processed: req.body.processed === 'true',
-        audioUrl: null, // Will be set after saving audio file
+        audioUrl: null, // No audio files stored
       };
       
       const data = insertRecordingSchema.parse(body);
-      
-      // Save audio file if provided
-      let audioUrl = null;
-      if (req.file) {
-        audioUrl = await audioService.saveAudioFile(req.file.buffer, req.file.originalname);
-      }
 
       const storage = await getStorage();
       const recording = await storage.createRecording({
         ...data,
-        audioUrl,
+        audioUrl: null, // No audio files stored
       });
 
       res.status(201).json(recording);
@@ -154,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Recording must have transcript to analyze" });
       }
 
-      const analysis = await analyzeTranscript(recording.transcript, recording.title);
+      const analysis = await aiService.analyzeTranscript(recording.transcript, recording.title);
       
       const updatedRecording = await storage.updateRecording(req.params.id, {
         summary: analysis.summary,
@@ -197,7 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             summary: r.summary || undefined,
             createdAt: r.createdAt
           }));
-          const aiResponse = await generateChatResponse(data.content, recordingsForAI);
+          const aiResponse = await aiService.generateChatResponse(data.content, recordingsForAI);
           
           const assistantMessage = await storage.createChatMessage({
             role: 'assistant',

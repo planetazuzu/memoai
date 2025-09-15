@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { randomUUID } from "crypto";
+import { ollamaService } from "./ollama";
 
 // Initialize OpenAI only when API key is available
 let openai: OpenAI | null = null;
@@ -30,7 +31,8 @@ export async function analyzeTranscript(transcript: string, title: string): Prom
   try {
     const openaiClient = initializeOpenAI();
     if (!openaiClient) {
-      throw new Error('OpenAI API key not configured');
+      console.log('OpenAI not available, trying Ollama...');
+      return await ollamaService.analyzeTranscript(transcript);
     }
 
     const response = await openaiClient.chat.completions.create({
