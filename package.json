@@ -13,7 +13,6 @@
     "check": "tsc",
     "check:server": "tsc -p tsconfig.server.json",
     "db:push": "drizzle-kit push",
-    "vercel-build": "npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

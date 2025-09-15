@@ -1,4 +1,4 @@
-# MemoAI
+# MemoAI - Asistente Personal Inteligente
 
 MemoAI es un asistente personal inteligente para grabación y transcripción de conversaciones. Permite grabar audio, transcribirlo automáticamente y analizarlo con IA para extraer tareas, resúmenes y entradas de diario.
 
@@ -13,6 +13,8 @@ MemoAI es un asistente personal inteligente para grabación y transcripción de 
 - **Sistema de backup** y restauración
 - **Notificaciones push** para recordatorios
 - **Tema claro/oscuro** con interfaz moderna
+- **Animaciones suaves** con Framer Motion
+- **Experiencia móvil optimizada** con gestos táctiles
 
 ## 🛠️ Tecnologías
 
@@ -40,7 +42,7 @@ npm install
 ```bash
 # Crear archivo .env
 OPENAI_API_KEY=tu_clave_api_de_openai
-PORT=3000
+PORT=9021
 NODE_ENV=development
 ```
 
@@ -64,7 +66,7 @@ npm run dev
 
 ## 📱 Uso
 
-1. **Abrir la aplicación** en `http://localhost:3000`
+1. **Abrir la aplicación** en `http://localhost:9021`
 2. **Grabar audio** tocando el botón de micrófono
 3. **Ver transcripción** en tiempo real
 4. **Analizar con IA** para extraer tareas y resúmenes
@@ -75,12 +77,79 @@ npm run dev
    - **Historial**: Timeline de grabaciones
    - **Asistente**: Chat con IA
 
+## 🚀 Despliegue en Servidor Propio
+
+### Opción 1: Docker (Recomendado)
+
+```bash
+# Construir y ejecutar con Docker
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+
+# Detener
+docker-compose down
+```
+
+### Opción 2: Instalación Manual
+
+```bash
+# Construir la aplicación
+npm run build
+
+# Instalar PM2 globalmente
+npm install -g pm2
+
+# Ejecutar con PM2
+pm2 start dist/server/index.js --name memoai
+pm2 startup
+pm2 save
+
+# Ver estado
+pm2 status
+pm2 logs memoai
+```
+
+### Opción 3: Script de Despliegue Automático
+
+```bash
+# Hacer ejecutable el script
+chmod +x deploy-server.sh
+
+# Ejecutar despliegue
+./deploy-server.sh tu-servidor.com usuario /var/www/memoai
+```
+
+### Configuración de Nginx
+
+```nginx
+server {
+    listen 80;
+    server_name tu-dominio.com;
+    
+    location / {
+        proxy_pass http://localhost:9021;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
 ## 🔐 Seguridad
 
 - **Almacenamiento local** - Todos los datos se guardan localmente
 - **Cifrado opcional** - Para datos sensibles
 - **Sin tracking** - No se envían datos a terceros
 - **Privacidad** - Solo se envía texto a OpenAI (nunca audio)
+- **Variables de entorno** - Claves API seguras
+- **Firewall configurado** - Puerto 9021 protegido
 
 ## 📄 Licencia
 
