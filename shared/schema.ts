@@ -58,6 +58,7 @@ export const insertRecordingSchema = createInsertSchema(recordings).omit({
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   id: true,
   createdAt: true,
+  userId: true,
 });
 
 export type InsertRecording = z.infer<typeof insertRecordingSchema>;
