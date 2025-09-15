@@ -6,6 +6,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Servir archivos de audio estáticos
+app.use('/uploads', express.static('/app/uploads'));
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
