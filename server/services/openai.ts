@@ -1,9 +1,16 @@
 import OpenAI from "openai";
 
-// Using the latest available OpenAI model
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.API_KEY 
-});
+// Initialize OpenAI only when API key is available
+let openai: OpenAI | null = null;
+
+const initializeOpenAI = () => {
+  if (!openai && process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'dummy-key-for-development') {
+    openai = new OpenAI({ 
+      apiKey: process.env.OPENAI_API_KEY 
+    });
+  }
+  return openai;
+};
 
 export interface AnalysisResult {
   summary: string;
@@ -20,7 +27,12 @@ export interface AnalysisResult {
 
 export async function analyzeTranscript(transcript: string, title: string): Promise<AnalysisResult> {
   try {
-    const response = await openai.chat.completions.create({
+    const openaiClient = initializeOpenAI();
+    if (!openaiClient) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    const response = await openaiClient.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
@@ -85,9 +97,9 @@ export async function generateChatResponse(
   recordings: Array<{ title: string; transcript?: string; summary?: string; createdAt: Date }>
 ): Promise<string> {
   try {
-    // Check if API key is properly configured
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "default_key") {
-      return "Lo siento, el servicio de IA no está configurado correctamente. Por favor contacta al administrador para configurar la clave API de OpenAI.";
+    const openaiClient = initializeOpenAI();
+    if (!openaiClient) {
+      return "Lo siento, el servicio de IA no está configurado correctamente. Por favor ve a Configuración para agregar tu clave API de OpenAI.";
     }
 
     const contextData = recordings.map(r => ({
@@ -96,7 +108,7 @@ export async function generateChatResponse(
       content: r.summary || r.transcript?.substring(0, 500) || 'Sin contenido disponible'
     }));
 
-    const response = await openai.chat.completions.create({
+    const response = await openaiClient.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
@@ -135,13 +147,61 @@ Responde de manera útil, concisa y en español. Si el usuario pregunta sobre ta
   }
 }
 
-export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
+export async function transcribeAudio(audioBuffer: Buffer, filename: string = 'audio.webm'): Promise<string> {
   try {
-    // Note: In a real implementation, you would save the buffer to a temporary file
-    // and pass it to OpenAI's transcription API. For now, we'll return a placeholder.
-    throw new Error('Audio transcription with OpenAI requires file upload implementation');
-  } catch (error) {
+    const openaiClient = initializeOpenAI();
+    if (!openaiClient) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    // Create a temporary file for the audio buffer
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const os = await import('os');
+    
+    const tempDir = os.tmpdir();
+    const tempFilePath = path.join(tempDir, `temp_${Date.now()}_${filename}`);
+    
+    try {
+      // Write buffer to temporary file
+      await fs.writeFile(tempFilePath, audioBuffer);
+      
+      // Create a File object for OpenAI API
+      const file = new File([audioBuffer], filename, { 
+        type: 'audio/webm' 
+      });
+      
+      // Use OpenAI's transcription API
+      const transcription = await openaiClient.audio.transcriptions.create({
+        file: file,
+        model: "whisper-1",
+        language: "es", // Spanish language
+        response_format: "text",
+      });
+      
+      return transcription;
+    } finally {
+      // Clean up temporary file
+      try {
+        await fs.unlink(tempFilePath);
+      } catch (cleanupError) {
+        console.warn('Failed to clean up temporary file:', cleanupError);
+      }
+    }
+  } catch (error: any) {
     console.error('Error transcribing audio:', error);
-    throw new Error('Failed to transcribe audio');
+    
+    // Handle specific OpenAI errors
+    if (error?.code === 'insufficient_quota') {
+      throw new Error('OpenAI API quota exceeded. Please try again later.');
+    } else if (error?.code === 'invalid_api_key') {
+      throw new Error('Invalid OpenAI API key. Please check your configuration.');
+    } else if (error?.status === 429) {
+      throw new Error('OpenAI API rate limit exceeded. Please try again later.');
+    } else if (error?.status >= 500) {
+      throw new Error('OpenAI API is experiencing issues. Please try again later.');
+    }
+    
+    throw new Error('Failed to transcribe audio. Please try again.');
   }
 }

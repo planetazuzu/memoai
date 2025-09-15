@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoAI - Sin Conexión</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .container {
+            max-width: 400px;
+            padding: 40px 20px;
+        }
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        h1 {
+            margin: 0 0 10px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        p {
+            margin: 0 0 30px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        .features {
+            text-align: left;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .features h3 {
+            margin: 0 0 15px;
+            font-size: 18px;
+        }
+        .features ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .features li {
+            margin: 8px 0;
+            opacity: 0.9;
+        }
+        .button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🎤</div>
+        <h1>Sin Conexión</h1>
+        <p>No tienes conexión a internet, pero MemoAI sigue funcionando offline.</p>
+        
+        <div class="features">
+            <h3>Funciones disponibles offline:</h3>
+            <ul>
+                <li>Grabar audio localmente</li>
+                <li>Ver grabaciones guardadas</li>
+                <li>Buscar en transcripciones</li>
+                <li>Gestionar tareas</li>
+                <li>Leer entradas de diario</li>
+            </ul>
+        </div>
+        
+        <a href="/" class="button">Volver a MemoAI</a>
+    </div>
+</body>
+</html>

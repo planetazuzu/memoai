@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 import { insertRecordingSchema, insertChatMessageSchema } from "@shared/schema";
-import { analyzeTranscript, generateChatResponse } from "./services/openai";
+import { analyzeTranscript, generateChatResponse, transcribeAudio } from "./services/openai";
 import { audioService } from "./services/audio";
 import multer from 'multer';
 import express from 'express';
@@ -29,6 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all recordings
   app.get("/api/recordings", async (req, res) => {
     try {
+      const storage = await getStorage();
       const recordings = await storage.getAllRecordings();
       res.json(recordings);
     } catch (error) {
@@ -39,6 +40,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get recording by ID
   app.get("/api/recordings/:id", async (req, res) => {
     try {
+      const storage = await getStorage();
       const recording = await storage.getRecording(req.params.id);
       if (!recording) {
         return res.status(404).json({ error: "Recording not found" });
@@ -54,10 +56,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Transform multipart/form-data fields for validation
       const body = {
-        ...req.body,
+        title: req.body.title || 'Grabación sin título',
         duration: req.body.duration ? Number(req.body.duration) : 0,
+        transcript: req.body.transcript || null,
+        summary: req.body.summary || null,
+        tasks: req.body.tasks ? JSON.parse(req.body.tasks) : [],
+        diaryEntry: req.body.diaryEntry || null,
         metadata: req.body.metadata ? JSON.parse(req.body.metadata) : { type: 'other' },
-        processed: req.body.processed === 'true'
+        processed: req.body.processed === 'true',
+        audioUrl: null, // Will be set after saving audio file
       };
       
       const data = insertRecordingSchema.parse(body);
@@ -68,6 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         audioUrl = await audioService.saveAudioFile(req.file.buffer, req.file.originalname);
       }
 
+      const storage = await getStorage();
       const recording = await storage.createRecording({
         ...data,
         audioUrl,
@@ -83,6 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update recording
   app.patch("/api/recordings/:id", async (req, res) => {
     try {
+      const storage = await getStorage();
       const updates = req.body;
       const recording = await storage.updateRecording(req.params.id, updates);
       
@@ -99,6 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete recording
   app.delete("/api/recordings/:id", async (req, res) => {
     try {
+      const storage = await getStorage();
       const recording = await storage.getRecording(req.params.id);
       if (!recording) {
         return res.status(404).json({ error: "Recording not found" });
@@ -123,6 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Search recordings
   app.get("/api/recordings/search/:query", async (req, res) => {
     try {
+      const storage = await getStorage();
       const recordings = await storage.searchRecordings(req.params.query);
       res.json(recordings);
     } catch (error) {
@@ -133,6 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analyze recording with AI
   app.post("/api/recordings/:id/analyze", async (req, res) => {
     try {
+      const storage = await getStorage();
       const recording = await storage.getRecording(req.params.id);
       if (!recording) {
         return res.status(404).json({ error: "Recording not found" });
@@ -161,6 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoints
   app.get("/api/chat/messages", async (req, res) => {
     try {
+      const storage = await getStorage();
       const messages = await storage.getAllChatMessages();
       res.json(messages);
     } catch (error) {
@@ -170,6 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/chat/messages", async (req, res) => {
     try {
+      const storage = await getStorage();
       const data = insertChatMessageSchema.parse(req.body);
       const message = await storage.createChatMessage(data);
       
@@ -215,6 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get recordings by date range
   app.get("/api/recordings/date/:startDate/:endDate", async (req, res) => {
     try {
+      const storage = await getStorage();
       const startDate = new Date(req.params.startDate);
       const endDate = new Date(req.params.endDate);
       
@@ -222,6 +237,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(recordings);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch recordings by date" });
+    }
+  });
+
+  // Transcribe audio
+  app.post("/api/transcribe", upload.single('audio'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No audio file provided" });
+      }
+
+      const transcription = await transcribeAudio(req.file.buffer, req.file.originalname);
+      
+      res.json({ 
+        transcription,
+        filename: req.file.originalname,
+        size: req.file.size 
+      });
+    } catch (error: any) {
+      console.error('Transcription error:', error);
+      res.status(500).json({ 
+        error: error.message || "Failed to transcribe audio" 
+      });
     }
   });
 

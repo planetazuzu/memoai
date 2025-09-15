@@ -1,16 +1,16 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, jsonb, boolean, integer } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const recordings = pgTable("recordings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const recordings = sqliteTable("recordings", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   title: text("title").notNull(),
   audioUrl: text("audio_url"),
   duration: integer("duration").notNull().default(0), // duration in seconds
   transcript: text("transcript"),
   summary: text("summary"),
-  tasks: jsonb("tasks").$type<Array<{
+  tasks: text("tasks", { mode: 'json' }).$type<Array<{
     id: string;
     title: string;
     description: string;
@@ -19,24 +19,34 @@ export const recordings = pgTable("recordings", {
     dueDate?: string;
   }>>().default([]),
   diaryEntry: text("diary_entry"),
-  metadata: jsonb("metadata").$type<{
+  metadata: text("metadata", { mode: 'json' }).$type<{
     type: 'meeting' | 'call' | 'note' | 'other';
     participants?: string[];
     tags?: string[];
   }>().$default(() => ({ type: 'other' as const })),
-  processed: boolean("processed").default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  processed: integer("processed", { mode: 'boolean' }).default(false),
+  createdAt: integer("created_at", { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
-export const chatMessages = pgTable("chat_messages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
+  createdAt: integer("created_at", { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  lastLogin: integer("last_login", { mode: 'timestamp' }),
+});
+
+export const chatMessages = sqliteTable("chat_messages", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id),
   role: text("role").notNull().$type<'user' | 'assistant'>(),
   content: text("content").notNull(),
-  metadata: jsonb("metadata").$type<{
+  metadata: text("metadata", { mode: 'json' }).$type<{
     recordingIds?: string[];
     searchQuery?: string;
   }>().default({}),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
 export const insertRecordingSchema = createInsertSchema(recordings).omit({

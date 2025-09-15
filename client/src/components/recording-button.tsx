@@ -5,6 +5,9 @@ import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useIndexedDB } from '@/hooks/use-indexed-db';
 import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/hooks/use-settings';
+import { apiRequest } from '@/lib/queryClient';
+import { notificationService } from '@/lib/notifications';
 import { cn } from '@/lib/utils';
 
 interface RecordingButtonProps {
@@ -17,8 +20,10 @@ interface RecordingButtonProps {
 
 export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState<'saving' | 'transcribing' | 'analyzing'>('saving');
   const { toast } = useToast();
   const { saveData } = useIndexedDB();
+  const { getSetting } = useSettings();
   
   const {
     isRecording,
@@ -70,27 +75,100 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
   const handleStopRecording = async () => {
     try {
       setIsProcessing(true);
+      setProcessingStep('saving');
       const audioBlob = await stopRecording();
       stopListening();
 
+      let finalTranscript = transcript.trim();
+      
+      // Si no hay transcripción del navegador o está vacía, usar la API de OpenAI
+      const autoTranscribe = getSetting('autoTranscribe');
+      const openaiApiKey = getSetting('openaiApiKey');
+      
+      if (!finalTranscript && autoTranscribe && openaiApiKey) {
+        try {
+          setProcessingStep('transcribing');
+          toast({
+            title: "Transcribiendo audio",
+            description: "Enviando a OpenAI para transcripción...",
+          });
+
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'recording.webm');
+          
+          const response = await apiRequest('POST', '/api/transcribe', formData);
+          finalTranscript = response.transcription;
+
+          toast({
+            title: "Transcripción completada",
+            description: "Audio transcrito exitosamente",
+          });
+        } catch (transcriptionError: any) {
+          console.error('Transcription error:', transcriptionError);
+          
+          // Si falla la transcripción, usar la transcripción del navegador o un mensaje
+          finalTranscript = transcript.trim() || 'Transcripción no disponible';
+          
+          toast({
+            title: "Transcripción fallida",
+            description: transcriptionError.message || "No se pudo transcribir el audio",
+            variant: "destructive",
+          });
+        }
+      } else if (!finalTranscript) {
+        finalTranscript = transcript.trim() || 'Transcripción no disponible';
+      }
+
       // Save to local storage
+      setProcessingStep('saving');
       const recordingData = {
         id: crypto.randomUUID(),
         audioBlob,
-        transcript: transcript.trim(),
+        transcript: finalTranscript,
         duration,
         createdAt: new Date(),
       };
 
       await saveData('recordings', recordingData);
       
+      // Auto-save to server
+      try {
+        const formData = new FormData();
+        formData.append('title', `Grabación ${new Date().toLocaleString('es-ES')}`);
+        formData.append('transcript', finalTranscript);
+        formData.append('duration', duration.toString());
+        formData.append('metadata', JSON.stringify({ type: 'other' }));
+        formData.append('audio', audioBlob, 'recording.webm');
+
+        await apiRequest('POST', '/api/recordings', formData);
+        
+        toast({
+          title: "Grabación guardada automáticamente",
+          description: "Se ha guardado en el servidor",
+        });
+      } catch (error) {
+        console.error('Auto-save error:', error);
+        toast({
+          title: "Guardado local completado",
+          description: "Error al guardar en servidor, pero se guardó localmente",
+          variant: "destructive",
+        });
+      }
+      
       onRecordingComplete?.({
         audioBlob,
-        transcript: transcript.trim(),
+        transcript: finalTranscript,
         duration,
       });
 
       resetTranscript();
+      
+      // Show notification
+      try {
+        await notificationService.showRecordingComplete(duration);
+      } catch (error) {
+        console.warn('Could not show notification:', error);
+      }
       
       toast({
         title: "Grabación completada",
@@ -104,6 +182,7 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
       });
     } finally {
       setIsProcessing(false);
+      setProcessingStep('saving');
     }
   };
 
@@ -120,12 +199,32 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
   };
 
   if (isProcessing) {
+    const getProcessingMessage = () => {
+      switch (processingStep) {
+        case 'saving':
+          return 'Guardando grabación...';
+        case 'transcribing':
+          return 'Transcribiendo con IA...';
+        case 'analyzing':
+          return 'Analizando contenido...';
+        default:
+          return 'Procesando grabación...';
+      }
+    };
+
     return (
       <div className="flex flex-col items-center space-y-4">
         <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center">
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
-        <p className="text-sm text-muted-foreground">Procesando grabación...</p>
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">{getProcessingMessage()}</p>
+          {processingStep === 'transcribing' && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Esto puede tomar unos segundos...
+            </p>
+          )}
+        </div>
       </div>
     );
   }

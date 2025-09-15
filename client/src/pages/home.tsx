@@ -14,14 +14,6 @@ import { Recording } from '@shared/schema';
 import { AudioRecording } from '@/types/audio';
 
 export default function Home() {
-  const [selectedTitle, setSelectedTitle] = useState('');
-  const [selectedType, setSelectedType] = useState<'meeting' | 'call' | 'note' | 'other'>('meeting');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [pendingRecording, setPendingRecording] = useState<{
-    audioBlob: Blob;
-    transcript: string;
-    duration: number;
-  } | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -95,23 +87,10 @@ export default function Home() {
     transcript: string;
     duration: number;
   }) => {
-    setPendingRecording(recording);
-    setIsDialogOpen(true);
+    // Recording is now auto-saved, just refresh the data
+    queryClient.invalidateQueries({ queryKey: ['/api/recordings'] });
   };
 
-  const handleSaveRecording = () => {
-    if (!pendingRecording || !selectedTitle.trim()) return;
-
-    createRecordingMutation.mutate({
-      title: selectedTitle.trim(),
-      transcript: pendingRecording.transcript,
-      duration: pendingRecording.duration,
-      audioBlob: pendingRecording.audioBlob,
-      metadata: {
-        type: selectedType,
-      },
-    });
-  };
 
   const handleAnalyzeRecording = (recordingId: string) => {
     analyzeRecordingMutation.mutate(recordingId);
@@ -321,70 +300,6 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* Save Recording Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Guardar Grabación</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Título de la grabación</label>
-              <Input
-                value={selectedTitle}
-                onChange={(e) => setSelectedTitle(e.target.value)}
-                placeholder="Ej: Reunión de equipo, Llamada con cliente..."
-                data-testid="input-recording-title"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Tipo de conversación</label>
-              <Select value={selectedType} onValueChange={(value: 'meeting' | 'call' | 'note' | 'other') => setSelectedType(value)}>
-                <SelectTrigger data-testid="select-recording-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="meeting">Reunión</SelectItem>
-                  <SelectItem value="call">Llamada</SelectItem>
-                  <SelectItem value="note">Nota personal</SelectItem>
-                  <SelectItem value="other">Otro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {pendingRecording && (
-              <div className="bg-muted p-3 rounded-lg">
-                <div className="text-sm text-muted-foreground mb-1">Duración: {formatTime(pendingRecording.duration)}</div>
-                {pendingRecording.transcript && (
-                  <div className="text-sm">
-                    <div className="text-muted-foreground mb-1">Transcripción:</div>
-                    <div className="max-h-20 overflow-y-auto text-xs">
-                      {pendingRecording.transcript}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                className="flex-1"
-                data-testid="button-cancel-save"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSaveRecording}
-                disabled={!selectedTitle.trim() || createRecordingMutation.isPending}
-                className="flex-1"
-                data-testid="button-confirm-save"
-              >
-                {createRecordingMutation.isPending ? 'Guardando...' : 'Guardar'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
