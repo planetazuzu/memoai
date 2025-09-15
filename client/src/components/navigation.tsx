@@ -1,4 +1,4 @@
-import { Home, Calendar, BookOpen, History, Bot } from 'lucide-react';
+import { Home, Calendar, BookOpen, History, Bot, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavigationProps {
@@ -11,6 +11,7 @@ export function Navigation({ currentTab, onTabChange }: NavigationProps) {
     { id: 'home', label: 'Inicio', icon: Home },
     { id: 'agenda', label: 'Agenda', icon: Calendar },
     { id: 'diary', label: 'Diario', icon: BookOpen },
+    { id: 'photos', label: 'Fotos', icon: Camera },
     { id: 'history', label: 'Historial', icon: History },
     { id: 'assistant', label: 'Asistente', icon: Bot },
   ];

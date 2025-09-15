@@ -11,7 +11,7 @@ import { ExportDialog } from '@/components/export-dialog';
 import { backupService } from '@/lib/backup';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Settings, Key, Globe, Shield, Download, Upload, Trash2, Save, Eye, EyeOff, Database, Clock } from 'lucide-react';
+import { Settings, Key, Globe, Shield, Download, Upload, Trash2, Save, Eye, EyeOff, Database, Clock, Bot } from 'lucide-react';
 
 interface AppSettings {
   openaiApiKey: string;
@@ -21,6 +21,10 @@ interface AppSettings {
   theme: 'light' | 'dark' | 'system';
   notifications: boolean;
   autoBackup: boolean;
+}
+
+interface SettingsPageProps {
+  onNavigate?: (page: string) => void;
 }
 
 const defaultSettings: AppSettings = {
@@ -33,7 +37,7 @@ const defaultSettings: AppSettings = {
   autoBackup: false,
 };
 
-export default function SettingsPage() {
+export default function SettingsPage({ onNavigate }: SettingsPageProps = {}) {
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [showApiKey, setShowApiKey] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);

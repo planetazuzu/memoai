@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RecordingButton } from '@/components/recording-button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useIndexedDB } from '@/hooks/use-indexed-db';
+import { useStorage } from '@/hooks/use-storage';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Upload, Settings, Users, User, Mic, CheckCircle, Clock, AlertCircle } from 'lucide-react';
@@ -17,7 +17,7 @@ export default function Home() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { getAllData } = useIndexedDB();
+  const { getRecordings } = useStorage();
 
   // Fetch recordings from server
   const { data: recordings = [], isLoading } = useQuery<Recording[]>({

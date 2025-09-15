@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Mic, Square, Pause, Play } from 'lucide-react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
-import { useIndexedDB } from '@/hooks/use-indexed-db';
+import { useStorage } from '@/hooks/use-storage';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/hooks/use-settings';
 import { apiRequest } from '@/lib/queryClient';
@@ -22,7 +22,7 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<'saving' | 'transcribing' | 'analyzing'>('saving');
   const { toast } = useToast();
-  const { saveData } = useIndexedDB();
+  const { saveRecording } = useStorage();
   const { getSetting } = useSettings();
   
   const {
@@ -131,7 +131,7 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
         createdAt: new Date(),
       };
 
-      await saveData('recordings', recordingData);
+              await saveRecording(recordingData);
       
       // Auto-save to server
       try {

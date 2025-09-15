@@ -16,8 +16,10 @@ import Home from "@/pages/home";
 import Chat from "@/pages/chat";
 import Agenda from "@/pages/agenda";
 import Diary from "@/pages/diary";
+import Photos from "@/pages/photos";
 import History from "@/pages/history";
 import SettingsPage from "@/pages/settings";
+import AISettings from "@/pages/ai-settings";
 import NotFound from "@/pages/not-found";
 
 function Header({ onTabChange }: { onTabChange: (tab: string) => void }) {
@@ -77,12 +79,16 @@ function Router() {
         return <Agenda />;
       case 'diary':
         return <Diary />;
+      case 'photos':
+        return <Photos />;
       case 'history':
         return <History />;
       case 'assistant':
         return <Chat />;
       case 'settings':
         return <SettingsPage />;
+      case 'ai-settings':
+        return <AISettings />;
       default:
         return <NotFound />;
     }
