@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { randomUUID } from "crypto";
 
 // Initialize OpenAI only when API key is available
 let openai: OpenAI | null = null;
@@ -80,7 +81,7 @@ Genera el análisis completo en el formato JSON especificado.`
     if (result.tasks) {
       result.tasks = result.tasks.map((task: any) => ({
         ...task,
-        id: task.id || crypto.randomUUID(),
+        id: task.id || randomUUID(),
         completed: task.completed || false,
       }));
     }
