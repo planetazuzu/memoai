@@ -20,9 +20,22 @@ export default function Home() {
   const { getRecordings } = useStorage();
 
   // Fetch recordings from server
-  const { data: recordings = [], isLoading } = useQuery<Recording[]>({
+  const { data: serverRecordings = [], isLoading: isLoadingServer } = useQuery<Recording[]>({
     queryKey: ['/api/recordings'],
   });
+
+  // Fetch recordings from local storage
+  const { data: localRecordings = [], isLoading: isLoadingLocal } = useQuery<Recording[]>({
+    queryKey: ['local-recordings'],
+    queryFn: async () => {
+      const recordings = await getRecordings();
+      return recordings || [];
+    },
+  });
+
+  // Combine server and local recordings
+  const recordings = [...serverRecordings, ...localRecordings];
+  const isLoading = isLoadingServer || isLoadingLocal;
 
   // Create recording mutation
   const createRecordingMutation = useMutation({
@@ -89,6 +102,7 @@ export default function Home() {
   }) => {
     // Recording is now auto-saved, just refresh the data
     queryClient.invalidateQueries({ queryKey: ['/api/recordings'] });
+    queryClient.invalidateQueries({ queryKey: ['local-recordings'] });
   };
 
 

@@ -22,7 +22,7 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<'saving' | 'transcribing' | 'analyzing'>('saving');
   const { toast } = useToast();
-  const { saveRecording } = useStorage();
+  const { saveRecording, getRecordings } = useStorage();
   const { getSetting } = useSettings();
   
   const {
@@ -123,13 +123,18 @@ export function RecordingButton({ onRecordingComplete }: RecordingButtonProps) {
 
       // Save to local storage
       setProcessingStep('saving');
-      const recordingData = {
-        id: crypto.randomUUID(),
-        audioBlob,
-        transcript: finalTranscript,
-        duration,
-        createdAt: new Date(),
-      };
+              const recordingData = {
+                title: `Grabación ${new Date().toLocaleString('es-ES')}`,
+                transcript: finalTranscript,
+                duration,
+                summary: undefined,
+                tasks: [],
+                diaryEntry: undefined,
+                metadata: { type: 'other' },
+                processed: false,
+                photos: [],
+                speakers: [],
+              };
 
               await saveRecording(recordingData);
       

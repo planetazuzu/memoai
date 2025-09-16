@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
   const [isCapturing, setIsCapturing] = useState(false);
   const [currentCaption, setCurrentCaption] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -44,6 +45,28 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
     isSupported: speechSupported,
   } = useSpeechRecognition();
 
+  // Effect to detect when video is ready
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleLoadedMetadata = () => {
+      setIsVideoReady(video.videoWidth > 0 && video.videoHeight > 0);
+    };
+
+    const handleCanPlay = () => {
+      setIsVideoReady(video.videoWidth > 0 && video.videoHeight > 0);
+    };
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('canplay', handleCanPlay);
+
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('canplay', handleCanPlay);
+    };
+  }, [isCapturing]);
+
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -51,18 +74,25 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
           facingMode: 'environment', // Usar cámara trasera en móviles
           width: { ideal: 1280 },
           height: { ideal: 720 }
-        } 
+        },
+        audio: true // Añadir audio para las notas de voz
       });
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         setIsCapturing(true);
+        
+        toast({
+          title: "Cámara iniciada",
+          description: "La cámara está lista para capturar fotos",
+        });
       }
     } catch (error) {
+      console.error('Camera error:', error);
       toast({
-        title: "Error",
-        description: "No se pudo acceder a la cámara",
+        title: "Error de cámara",
+        description: `No se pudo acceder a la cámara: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -77,42 +107,78 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
   };
 
   const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    console.log('Capture photo clicked');
+    console.log('Video ref:', videoRef.current);
+    console.log('Canvas ref:', canvasRef.current);
+    console.log('Video ready:', isVideoReady);
+    console.log('Video dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
+    
+    if (!videoRef.current || !canvasRef.current) {
+      console.error('Missing video or canvas ref');
+      toast({
+        title: "Error",
+        description: "No se puede capturar la foto. Verifica que la cámara esté funcionando.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
     const context = canvas.getContext('2d');
 
-    if (!context) return;
+    if (!context) {
+      toast({
+        title: "Error",
+        description: "No se puede acceder al contexto del canvas.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Configurar canvas con las dimensiones del video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    try {
+      // Configurar canvas con las dimensiones del video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-    // Dibujar el frame actual del video en el canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Dibujar el frame actual del video en el canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Convertir a blob
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const photo: Photo = {
-          id: crypto.randomUUID(),
-          url,
-          caption: currentCaption || transcript || 'Sin descripción',
-          timestamp: Date.now(),
-        };
-        
-        setPhotos(prev => [...prev, photo]);
-        setCurrentCaption('');
-        resetTranscript();
-        
-        toast({
-          title: "Foto capturada",
-          description: "La foto se ha añadido a la colección",
-        });
-      }
-    }, 'image/jpeg', 0.8);
+      // Convertir a blob
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const photo: Photo = {
+            id: crypto.randomUUID(),
+            url,
+            caption: currentCaption || transcript || 'Sin descripción',
+            timestamp: Date.now(),
+          };
+          
+          setPhotos(prev => [...prev, photo]);
+          setCurrentCaption('');
+          resetTranscript();
+          
+          toast({
+            title: "Foto capturada",
+            description: "La foto se ha añadido a la colección",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "No se pudo procesar la foto capturada.",
+            variant: "destructive",
+          });
+        }
+      }, 'image/jpeg', 0.8);
+    } catch (error) {
+      console.error('Capture error:', error);
+      toast({
+        title: "Error de captura",
+        description: `No se pudo capturar la foto: ${error.message}`,
+        variant: "destructive",
+      });
+    }
   };
 
   const startVoiceNote = async () => {
@@ -197,15 +263,25 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
               </div>
 
               <div className="flex space-x-2">
-                <Button onClick={capturePhoto} className="flex-1">
+                <Button 
+                  onClick={capturePhoto} 
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                  disabled={!isVideoReady}
+                >
                   <Camera className="w-4 h-4 mr-2" />
-                  Capturar Foto
+                  {isVideoReady ? 'Capturar Foto' : 'Inicializando...'}
                 </Button>
                 <Button onClick={stopCamera} variant="outline">
                   <Square className="w-4 h-4 mr-2" />
                   Detener
                 </Button>
               </div>
+              
+              {!isVideoReady && (
+                <p className="text-sm text-muted-foreground text-center">
+                  {isCapturing ? 'Esperando a que la cámara se inicialice...' : 'Inicia la cámara para capturar fotos'}
+                </p>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="caption">Descripción de la foto</Label>
