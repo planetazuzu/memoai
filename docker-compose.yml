@@ -13,7 +13,6 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:latest}
     volumes:
       - ./uploads:/app/uploads
-      - ./database.sqlite:/app/database.sqlite
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:9021/api/recordings', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]

@@ -116,28 +116,13 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use SQLite storage by default, fallback to memory storage
-let storage: IStorage;
+// Use only memory storage for simplicity
+const storage: IStorage = new MemStorage();
 
-// Initialize storage
-(async () => {
-  try {
-    const { sqliteStorage } = await import('./storage-sqlite');
-    await sqliteStorage.initializeDatabase();
-    storage = sqliteStorage;
-    console.log('Using SQLite storage');
-  } catch (error) {
-    console.warn('Failed to initialize SQLite storage, falling back to memory storage:', error);
-    storage = new MemStorage();
-  }
-})();
+console.log('Using memory storage (Dexie for frontend)');
 
-// Export a function to get storage (since it's async)
+// Export a function to get storage
 export const getStorage = async (): Promise<IStorage> => {
-  if (!storage) {
-    // Wait a bit for initialization
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
   return storage;
 };
 

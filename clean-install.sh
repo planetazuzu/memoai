@@ -27,9 +27,7 @@ git pull origin main
 
 # 6. Crear directorios necesarios
 echo "📁 Creando directorios..."
-mkdir -p /apps/memoai/data
 mkdir -p /apps/memoai/uploads
-chmod 777 /apps/memoai/data
 chmod 777 /apps/memoai/uploads
 
 # 7. Configurar Ollama (opcional)
