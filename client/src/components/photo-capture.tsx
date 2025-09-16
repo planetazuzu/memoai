@@ -69,30 +69,66 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      // Verificar si el navegador soporta getUserMedia
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Tu navegador no soporta acceso a la cámara. Usa Chrome, Firefox o Safari.');
+      }
+
+      // Verificar permisos de cámara
+      const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+      console.log('Camera permission status:', permissionStatus.state);
+
+      const constraints = {
         video: { 
           facingMode: 'environment', // Usar cámara trasera en móviles
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 }
         },
-        audio: true // Añadir audio para las notas de voz
-      });
+        audio: false // Deshabilitar audio por ahora para evitar problemas
+      };
+
+      console.log('Requesting camera with constraints:', constraints);
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('Camera stream obtained:', stream);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         setIsCapturing(true);
         
+        // Esperar a que el video esté listo
+        videoRef.current.onloadedmetadata = () => {
+          console.log('Video metadata loaded');
+          console.log('Video dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
+        };
+        
         toast({
           title: "Cámara iniciada",
           description: "La cámara está lista para capturar fotos",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Camera error:', error);
+      
+      let errorMessage = 'Error desconocido';
+      if (error.name === 'NotAllowedError') {
+        errorMessage = 'Permisos de cámara denegados. Por favor, permite el acceso a la cámara y recarga la página.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'No se encontró ninguna cámara. Verifica que tengas una cámara conectada.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = 'La cámara está siendo usada por otra aplicación.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage = 'La cámara no puede cumplir con los requisitos solicitados.';
+      } else if (error.name === 'SecurityError') {
+        errorMessage = 'Error de seguridad. Asegúrate de usar HTTPS.';
+      } else {
+        errorMessage = error.message || 'No se pudo acceder a la cámara';
+      }
+      
       toast({
         title: "Error de cámara",
-        description: `No se pudo acceder a la cámara: ${error.message}`,
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -136,6 +172,16 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
       return;
     }
 
+    // Verificar que el video tenga dimensiones válidas
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      toast({
+        title: "Error",
+        description: "El video no está listo. Espera un momento e intenta de nuevo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Configurar canvas con las dimensiones del video
       canvas.width = video.videoWidth;
@@ -144,7 +190,7 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
       // Dibujar el frame actual del video en el canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Convertir a blob
+      // Convertir a blob con mejor manejo de errores
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
@@ -159,11 +205,14 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
           setCurrentCaption('');
           resetTranscript();
           
+          console.log('Photo captured successfully:', photo);
+          
           toast({
             title: "Foto capturada",
             description: "La foto se ha añadido a la colección",
           });
         } else {
+          console.error('Failed to create blob from canvas');
           toast({
             title: "Error",
             description: "No se pudo procesar la foto capturada.",
@@ -171,7 +220,7 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
           });
         }
       }, 'image/jpeg', 0.8);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Capture error:', error);
       toast({
         title: "Error de captura",
@@ -243,10 +292,17 @@ export function PhotoCapture({ onPhotosCaptured }: PhotoCaptureProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {!isCapturing ? (
-            <Button onClick={startCamera} className="w-full">
-              <Camera className="w-4 h-4 mr-2" />
-              Iniciar Cámara
-            </Button>
+            <div className="space-y-2">
+              <Button onClick={startCamera} className="w-full">
+                <Camera className="w-4 h-4 mr-2" />
+                Iniciar Cámara
+              </Button>
+              <div className="text-xs text-muted-foreground text-center">
+                <p>• Asegúrate de permitir el acceso a la cámara</p>
+                <p>• Usa HTTPS para mejor compatibilidad</p>
+                <p>• Funciona mejor en Chrome, Firefox o Safari</p>
+              </div>
+            </div>
           ) : (
             <div className="space-y-4">
               <div className="relative">

@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Camera, Search, Filter, Calendar, MapPin, Mic } from 'lucide-react';
 import { PhotoCapture } from '@/components/photo-capture';
+import { CameraDiagnostics } from '@/components/camera-diagnostics';
 import { Recording } from '@shared/schema';
 
 interface Photo {
@@ -18,6 +19,7 @@ interface Photo {
 
 export default function PhotosPage() {
   const [showCapture, setShowCapture] = useState(false);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch recordings with photos
@@ -79,15 +81,42 @@ export default function PhotosPage() {
     );
   }
 
+  if (showDiagnostics) {
+    return (
+      <div className="px-4 py-6 pb-24">
+        <div className="mb-6">
+          <Button 
+            onClick={() => setShowDiagnostics(false)}
+            variant="outline"
+            className="mb-4"
+          >
+            ← Volver
+          </Button>
+          <h2 className="text-xl font-semibold">Diagnóstico de Cámara</h2>
+        </div>
+        <CameraDiagnostics />
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 py-6 pb-24">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Fotos</h2>
-          <Button onClick={() => setShowCapture(true)}>
-            <Camera className="w-4 h-4 mr-2" />
-            Capturar
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => setShowDiagnostics(true)}
+              variant="outline"
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              Diagnóstico
+            </Button>
+            <Button onClick={() => setShowCapture(true)}>
+              <Camera className="w-4 h-4 mr-2" />
+              Capturar
+            </Button>
+          </div>
         </div>
 
         {/* Search */}

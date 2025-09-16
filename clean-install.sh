@@ -30,6 +30,16 @@ echo "📁 Creando estructura de directorios..."
 chmod +x create-data-structure.sh
 ./create-data-structure.sh
 
+# 6.1. Crear archivo de configuración si no existe
+echo "⚙️ Configurando variables de entorno..."
+if [ ! -f .env ]; then
+    echo "📝 Creando archivo .env..."
+    cp config.example.env .env
+    echo "✅ Archivo .env creado desde config.example.env"
+else
+    echo "✅ Archivo .env ya existe"
+fi
+
 # 7. Configurar Ollama (opcional)
 echo "🤖 Configurando Ollama..."
 if command -v ollama &> /dev/null; then

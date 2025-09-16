@@ -40,14 +40,19 @@ curl -f http://localhost:11434/api/tags || echo "❌ No se pudo conectar a Ollam
 # 6. Crear archivo .env si no existe
 if [ ! -f .env ]; then
     echo "📝 Creando archivo .env..."
-    cat > .env << EOF
+    if [ -f config.example.env ]; then
+        cp config.example.env .env
+        echo "✅ Archivo .env creado desde config.example.env"
+    else
+        cat > .env << EOF
 # MemoAI Configuration
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=llama3.2:latest
 NODE_ENV=production
 PORT=9021
 EOF
-    echo "✅ Archivo .env creado"
+        echo "✅ Archivo .env creado"
+    fi
 else
     echo "✅ Archivo .env ya existe"
 fi
