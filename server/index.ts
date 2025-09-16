@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import fileRoutes from "./routes/files";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
@@ -7,7 +8,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Servir archivos de audio estáticos
-app.use('/uploads', express.static('/app/uploads'));
+// Serve static files from data directory
+app.use('/data', express.static('/app/data'));
+app.use('/uploads', express.static('/app/data/uploads'));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -41,6 +44,9 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+  
+  // Register file management routes
+  app.use('/api/files', fileRoutes);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

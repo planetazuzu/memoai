@@ -25,10 +25,10 @@ echo "📥 Descargando últimos cambios..."
 cd /apps/memoai
 git pull origin main
 
-# 6. Crear directorios necesarios
-echo "📁 Creando directorios..."
-mkdir -p /apps/memoai/uploads
-chmod 777 /apps/memoai/uploads
+# 6. Crear estructura de directorios
+echo "📁 Creando estructura de directorios..."
+chmod +x create-data-structure.sh
+./create-data-structure.sh
 
 # 7. Configurar Ollama (opcional)
 echo "🤖 Configurando Ollama..."
