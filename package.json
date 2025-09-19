@@ -1,6 +1,6 @@
 {
   "name": "memoai",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MemoAI - Asistente personal inteligente para grabación y transcripción de conversaciones",
   "type": "module",
   "license": "MIT",

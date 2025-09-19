@@ -109,3 +109,5 @@ migrations/
 # Backup files
 *.backup
 *.bak
+backups/
+logs/
